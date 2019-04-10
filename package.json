@@ -1,0 +1,36 @@
+{
+  "name": "SampleReactNativeProject",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "test": "jest"
+  },
+  "dependencies": {
+    "native-base": "^2.12.1",
+    "random-string": "^0.2.0",
+    "react": "16.8.3",
+    "react-native": "0.59.3",
+    "react-native-button": "^2.3.0",
+    "react-native-calendars": "^1.32.0",
+    "react-native-elements": "^1.1.0",
+    "react-native-modalbox": "^1.7.1",
+    "react-native-swipeout": "^2.3.6",
+    "react-native-vector-icons": "^6.4.2",
+    "react-navigation": "^3.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.3",
+    "@babel/runtime": "^7.4.3",
+    "babel-cli": "^6.26.0",
+    "babel-jest": "^24.7.1",
+    "babel-preset-flow": "^6.23.0",
+    "flow-bin": "0.92.0",
+    "jest": "^24.7.1",
+    "metro-react-native-babel-preset": "^0.53.1",
+    "react-test-renderer": "16.8.3"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
