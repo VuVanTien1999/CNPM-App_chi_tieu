@@ -12,6 +12,7 @@ import { Toast } from 'native-base';
 //import console = require('console');
 import AddModal from './AddModal';
 import EditModal from './EditModal';
+import CalendarModal from './CalendarModal';
 
 
 class RecordItemList extends Component {
@@ -108,6 +109,7 @@ export default class RecordView extends Component {
             deleteRowKey: null,
         };
         this._onPressAdd = this._onPressAdd.bind(this);
+        this._onPressCalendar = this._onPressCalendar.bind(this);
     }
     refreshFlatList = (activeKey) => {
         this.setState((prevState) => {
@@ -116,7 +118,7 @@ export default class RecordView extends Component {
             };
         });
 
-        //this.setState({ deleteRowKey: activeKey });
+        //this.setState({ deleteRowKey: activeKey });f
 
         //this.refs.flatList.scrollToItem(0);
         this.refs.flatList.scrollToEnd();
@@ -124,6 +126,10 @@ export default class RecordView extends Component {
     _onPressAdd() {
         //alert("Them");
         this.refs.addModal.showAddModal();
+    }
+    _onPressCalendar() {
+        this.refs.calendarModal.showCalendarModal();
+
     }
 
     render() {
@@ -146,13 +152,18 @@ export default class RecordView extends Component {
                     <Button
                         large
                         icon={{ name: 'date-range', color: 'yellow' }}
-                        title='Start day' />
+                        title='Start day'
+                        onPress={this._onPressCalendar}
+                    />
 
 
                     <Button
                         large
                         icon={{ name: 'date-range', color: 'yellow' }}
-                        title='End day' />
+                        title='End day'
+                        onPress={this._onPressCalendar}
+                    />
+
 
                 </View>
 
@@ -194,6 +205,10 @@ export default class RecordView extends Component {
                     <EditModal ref={'editModal'} parentFlatList={this} >
 
                     </EditModal>
+
+                    {/* <CalendarModal ref={'calendarModal'} parentFlatList={this} >
+
+                    </CalendarModal> */}
 
 
                     {/* <View style={{
@@ -262,15 +277,18 @@ export default class RecordView extends Component {
                     }}
                 /> */}
 
-                <View style={{ margin: 3 }}>
-                    <Button
-                        title='Thêm'
-                        //containerStyle={{ height: 65}}
-                        type='outline'
-                        raised
-                        onPress={this._onPressAdd}
-                    />
+
+                <View>
+                <Button
+                    title='Thêm'
+                    //containerStyle={{ height: 65}}
+                    type='outline'
+                    //raised
+                    onPress={this._onPressAdd}
+                    containerStyle={{ margin: 5, borderWidth: 2, borderColor: 'blue', }}
+                />
                 </View>
+
 
                 <View style={{
                     height: 60,
@@ -285,6 +303,10 @@ export default class RecordView extends Component {
                     />
 
                 </View>
+
+                <CalendarModal ref={'calendarModal'} parentFlatList={this} >
+
+                </CalendarModal>
 
             </View >
         );
