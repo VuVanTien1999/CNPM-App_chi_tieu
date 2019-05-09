@@ -22,17 +22,14 @@ export default class AddModal extends Component {
   constructor(props) {
     super(props);
     // Add firestore
-    this.ref = firebase.firestore().collection("todos");
+    this.ref = firebase.firestore().collection("SPRecordList")
+                .doc(this.props.SPRecord_id).collection("SPRecord"); //
     this.unsubcribe = null;
 
     this.state = {
       newCategory: "",
       newAmount: "",
       newDescription: "",
-
-      // firestore
-      loading: true,
-      todos: []
     };
   }
   showAddModal = () => {
@@ -41,34 +38,6 @@ export default class AddModal extends Component {
   generateKey = numOfCharacters => {
     return require("random-string")({ length: numOfCharacters });
   };
-
-  onCollectionUpdate = querySnapshot => {
-    const todos = [];
-    querySnapshot.forEach(doc => {
-      const { db_category, db_amount, db_description } = doc.data();
-
-      todos.push({
-        key: doc.id,
-        doc,
-        db_category,
-        db_amount,
-        db_description
-      });
-    });
-
-    this.setState({
-        todos,
-        loading: false,
-    })
-  };
-
-  componentDidMount() {
-    this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate);
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe();
-  }
 
   render() {
     return (
@@ -179,7 +148,7 @@ export default class AddModal extends Component {
               description: this.state.newDescription,
               
             });
-
+            
             this.refs.myModal.close();
           }}
         >

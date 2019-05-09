@@ -171,7 +171,10 @@ export default class EditModal extends Component {
             //     });
             //   });
 
-            firebase.firestore().collection('todos').doc(this.state.item_id).update({
+            firebase.firestore().collection('SPRecordList')
+            .doc(this.props.parentFlatList.props.navigation.getParam('itemId', 'noId'))
+            .collection('SPRecord').doc(this.state.item_id)
+            .update({
                 category: this.state.editingCategory,
                 amount: this.state.editingAmount,
                 description: this.state.editingDescription

@@ -2,27 +2,51 @@ import React, { Component } from 'react';
 import {
     AppResistry, FlatList, StyleSheet, Text, View, Image, Alert,
     Platform, TouchableHighlight, Dimensions,
-    TextInput
+    TextInput, DatePickerAndroid   
 } from 'react-native';
 import Button from 'react-native-button';
 import Modal from 'react-native-modalbox';
 import { Calendar, CalendarList, Agenda } from 'react-native-calendars';
 import { Row } from 'native-base';
+import firebase from 'react-native-firebase';
+//import console = require('console');
 
 var screen = Dimensions.get('window');
 export default class AddModal extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            newCategory: '',
-            newAmount: '',
-            newDescription: '',
+            // newCategory: '',
+            // newAmount: '',
+            // newDescription: '',
+
+            selectedDate: null,
+            this_recordView: null,
+            day_s:'',
+            month_s:'',
+            year_s: '',
+            button_s: '',
+            startDay_s: null,
+            start_day_min: null,
+            endDay_s: null,
         }
+        
     }
-    showCalendarModal = () => {
+
+
+    showCalendarModal = (ref_recordView, button_state) => {
+        this.setState({this_recordView: ref_recordView})
+        this.setState({button_s: button_state})
+        if (button_state == 'end') {
+            this.setState({start_day_min: ref_recordView.state.start_day_state});
+        }
+        else {
+            this.setState({start_day_min: null})
+        }
         this.refs.myModal.open();
     }
     render() {
+
         return (
             <Modal
                 ref={'myModal'}
@@ -56,9 +80,28 @@ export default class AddModal extends Component {
                     }}>Chọn ngày
                     </Text>
 
-                    <Calendar>
+                    <Calendar
+                    markedDates={{[this.state.selectedDate]:{selected: true},}}
+                    onDayPress={(day) => {
+                        this.setState({
+                            selectedDate: day.dateString,
+                            day_s: day.day,
+                            month_s: day.month,
+                            year_s: day.year
+                            });
+                        if (this.state.button_s=='start') {
+                            this.setState({startDay_s: day});
+                        }
+                        if (this.state.button_s=='end') {
+                            this.setState({endDay_s: day});
+                        }
+                        
+                        }}
+                    minDate={this.state.start_day_min}
+                    >
 
                     </Calendar>
+                    
 
                     <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
                     <Button
@@ -75,7 +118,7 @@ export default class AddModal extends Component {
                         }}
                         onPress={
                             () => {
-                                alert('da bam Cancel')
+                                // alert('da bam Cancel')
                                 this.refs.myModal.close()
                             }
                         }
@@ -98,8 +141,45 @@ export default class AddModal extends Component {
                         }}
                         onPress={
                             () => {
-                                alert('da bam Save')
-                                //this.refs.myModal.close()
+                                //alert(this.state.selectedDate)
+                                
+                                // firebase.firestore().collection('todos').add({
+                                //     start_date: this.state.selectedDate,
+                                // });
+
+                                // this.state.button_s=='start'?
+                                // this.state.this_recordView.setState({
+                                //     start_day_text: (this.state.day_s+'-'+this.state.month_s+'-'+this.state.year_s)
+                                //     })
+
+                                //     :this.state.this_recordView.setState({
+                                //     end_day_text: (this.state.day_s+'-'+this.state.month_s+'-'+this.state.year_s)
+                                //     });
+                                if (this.state.button_s=='start') {
+                                    
+                                    // this.state.this_recordView.setState({
+                                    this.props.parentFlatList.setState({
+                                    start_day_text: (this.state.day_s+'-'+this.state.month_s+'-'+this.state.year_s),
+                                    start_day_state: this.state.startDay_s
+                                    });
+
+                                    firebase.firestore().collection('SPRecordList').doc(this.props.SPRecord_id).update({
+                                        start_day: this.state.startDay_s
+                                    })
+                                  
+                                } 
+                                if (this.state.button_s == 'end') {
+                                    //this.state.this_recordView.setState({
+                                    this.props.parentFlatList.setState({
+                                    end_day_text: (this.state.day_s+'-'+this.state.month_s+'-'+this.state.year_s),
+                                    end_day_state: this.state.endDay_s
+                                    })
+
+                                    firebase.firestore().collection('SPRecordList').doc(this.props.SPRecord_id).update({
+                                        end_day: this.state.endDay_s
+                                    })
+                                } 
+                                this.refs.myModal.close()
                             }
                         }
                     >

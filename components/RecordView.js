@@ -161,8 +161,13 @@ class FirestoreItem extends Component {
         },
         {
           onPress: () => {
-            firebase.firestore().collection('todos').doc(this.props.item.id).delete();
-            alert('Press Remove button')
+            firebase.firestore().collection('SPRecordList')
+            .doc(this.props.parentFlatList.props.navigation.getParam('itemId', 'noId'))
+            .collection('SPRecord')
+            .doc(this.props.item.id).delete();
+            console.log(this.props.item.id);
+            console.log(this.props.parentFlatList.props.navigation.getParam('itemId', 'noId'));
+            //alert('Press Remove button')
           },
           text: 'Xóa',
           type: 'delete'
@@ -206,18 +211,30 @@ export default class RecordView extends Component {
     super(props);
 
     // Firestore
-    this.ref = firebase.firestore().collection("todos");
+    //this.ref = firebase.firestore().collection("todos");
+    //this.ref = firebase.firestore().collection("SPRecordList")
+    //            .doc(this.props.SPRecord_id).collection('SPRecord'); 
 
     this.state = {
       deleteRowKey: null,
 
       // for firestore
       loading: true,
-      todoTask: []
+      todoTask: [],
+
+      // for Button
+      start_day_text: 'Start day',
+      end_day_text: 'End day',
+      start_day_state: null,
+      end_day_state: null,
+
+      // for header
+      record_name:'',
     };
 
     this._onPressAdd = this._onPressAdd.bind(this);
     this._onPressCalendar = this._onPressCalendar.bind(this);
+    this._onPressCalendar_endDay = this._onPressCalendar_endDay.bind(this);
   }
 
   onCollectionUpdate = (querySnapshot) => {
@@ -232,7 +249,8 @@ export default class RecordView extends Component {
         amount: doc.data().amount,
         description: doc.data().description
       });
-      console.log('category_name: ${category_name}');
+      console.log('category_name: $(category_name)');
+
     });
     this.setState({
         todoTask: todos,
@@ -242,10 +260,44 @@ export default class RecordView extends Component {
 
   componentDidMount() {
     // firestore
-    this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate);
-    // this.unsubscribe = this.ref.onSnapshot((querySnapshot) => {
+    var db_ref_record = firebase.firestore().collection('SPRecordList')
+            .doc(this.props.navigation.getParam('itemId', 'noId'))
+            .collection('SPRecord');
 
-    //   });
+    this.unsubscribe = db_ref_record.onSnapshot(this.onCollectionUpdate);
+    this.setState({record_name: this.props.navigation.getParam('item', '').name});
+    var db_ref_list = firebase.firestore().collection('SPRecordList')
+            .doc(this.props.navigation.getParam('itemId', 'noId'));
+            
+    db_ref_list.get().then((doc) => {
+      if (doc.exists) {
+        //console.log(doc.data().start_day);
+        if (doc.data().start_day.dateString != null){
+          var start_day_str_db = doc.data().start_day.day
+          +'-'+doc.data().start_day.month+'-'+doc.data().start_day.year;
+          this.setState({
+            start_day_text: start_day_str_db,
+            start_day_state: doc.data().start_day
+          })
+        }
+        if (doc.data().end_day.dateString != null){
+          var end_day_str_db = doc.data().end_day.day
+          +'-'+doc.data().end_day.month+'-'+doc.data().end_day.year;
+          this.setState({
+            end_day_text: end_day_str_db,
+            end_day_state: doc.data().end_day
+          })
+        }
+      }
+      else {
+        console.log('No such document');
+      }
+    })
+
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
   }
 
   refreshFlatList = activeKey => {
@@ -265,16 +317,27 @@ export default class RecordView extends Component {
     this.refs.addModal.showAddModal();
   }
   _onPressCalendar() {
-    this.refs.calendarModal.showCalendarModal();
+    this.refs.calendarModal_startDay.showCalendarModal(this, 'start');
+    //this.setState({start_day_text: 'display day'});
+  }
+  _onPressCalendar_endDay() {
+    //this.state.start_day_text=='Start day'?return():
+    if (this.state.start_day_text=='Start day') {
+      return(alert("Vui lòng nhập ngày bắt đầu trước"));
+    }
+    else {
+    this.refs.calendarModal_endDay.showCalendarModal(this, 'end');
+    }
+    //this.setState({start_day_text: 'display day'});
   }
 
   render() {
-
+    
     return (
       <View style={{ flex: 1 }}>
         <Header
           leftComponent={{ icon: "menu", color: "#fff" }}
-          centerComponent={{ text: "Ban ghi 1", style: { color: "#fff" } }}
+          centerComponent={{ text: this.state.record_name, style: { color: "#fff" } }}
           rightComponent={{ icon: "home", color: "#fff" }}
         />
 
@@ -288,15 +351,15 @@ export default class RecordView extends Component {
           <Button
             large
             icon={{ name: "date-range", color: "yellow" }}
-            title="Start day"
+            title= {this.state.start_day_text}
             onPress={this._onPressCalendar}
           />
 
           <Button
             large
             icon={{ name: "date-range", color: "yellow" }}
-            title="End day"
-            onPress={this._onPressCalendar}
+            title={this.state.end_day_text}
+            onPress={this._onPressCalendar_endDay}
           />
         </View>
 
@@ -311,34 +374,14 @@ export default class RecordView extends Component {
             margin: 3
           }}
         >
-          {/* <FlatList   //test firestore
-                        ref={'flatList'}
-                        data={recordList}
-                        renderItem={({ item, index }) => {
-                            return (
-                                <RecordItemList
-                                    item={item}
-                                    index={index}
-                                    parentFlatList={this}
-                                >
-                                </RecordItemList>
-                            )
-                        }
-                        }
-                    >
-                    </FlatList>      */}
 
           <FlatList
             ref = {'flatList'}
             data={this.state.todoTask}
             renderItem={({ item, index }) => {
               return (
-                // <View>
-                // <Text style={{color: 'blue'}}>{item.category}</Text>
-                // <Text style={{color:'red'}}>Hello</Text>
-                // </View>
                 <FirestoreItem 
-                  item = {item} // writing
+                  item = {item} 
                   parentFlatList = {this}
                   index = {index}
 
@@ -347,11 +390,15 @@ export default class RecordView extends Component {
                 </FirestoreItem>
               );
             }}
-            keyExtractor={(item, index) => item.category}
+            keyExtractor={(item, index) => item.id}
           ></FlatList>
 
 
-          <AddModal ref={"addModal"} parentFlatList={this} />
+          <AddModal 
+          ref={"addModal"} 
+          parentFlatList={this} 
+          SPRecord_id = {this.props.navigation.getParam('itemId', 'noId')}
+          />
 
           <EditModal 
           ref={"editModal"} 
@@ -379,14 +426,6 @@ export default class RecordView extends Component {
           </Text>
         </View>
 
-        {/* <ButtonGroup
-                    buttons={buttons}
-                    containerStyle={{ height: 50 }}
-                    onPress={(value) => {
-                        ToastAndroid.show(value.toString(), ToastAndroid.SHORT);
-                    }}
-                /> */}
-
         <View>
           <Button
             title="Thêm"
@@ -406,10 +445,58 @@ export default class RecordView extends Component {
             margin: 10
           }}
         >
-          <Button title="Thoát" containerStyle={{ width: 85 }} />
+          <Button 
+          type="outline" 
+          title="Thoát" 
+          containerStyle={{ width: 85 }} 
+          onPress = {() => {
+            // TODO_: condition for start_day < end_day
+            
+            if (this.state.start_day_state==null 
+            || this.state.end_day_state==null) {
+              //alert('miss day');
+              // check firestore
+              console.log(this.props.navigation.getParam('itemId', 'noId'));
+            var db_ref = firebase.firestore().collection('SPRecordList')
+            .doc(this.props.navigation.getParam('itemId', 'noId'))
+            .collection('SPRecord');
+            db_ref.get()
+            .then((querySnapshot)=> {
+              querySnapshot.forEach((doc)=>{
+                console.log(doc.id, "=>", doc.data());
+              })
+            })
+            
+            // check firestore
+              return;
+            }
+            else {
+              if (this.state.start_day_state.timestamp 
+              > this.state.end_day_state.timestamp)
+              {
+                console.log(this.state.start_day_state);
+                console.log(this.state.end_day_state);
+                alert('start day must before end day');
+                return;
+              }
+            }
+            this.props.navigation.navigate('MainScreen');
+          }}
+
+          />
         </View>
 
-        <CalendarModal ref={"calendarModal"} parentFlatList={this} />
+        <CalendarModal 
+        ref={"calendarModal_startDay"} 
+        parentFlatList={this} 
+        SPRecord_id = {this.props.navigation.getParam('itemId','noId')}
+
+        />
+        <CalendarModal 
+        ref={"calendarModal_endDay"} 
+        parentFlatList={this} 
+        SPRecord_id = {this.props.navigation.getParam('itemId','noId')}
+        />
       </View>
     );
   }
